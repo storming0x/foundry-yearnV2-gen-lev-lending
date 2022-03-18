@@ -6,7 +6,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ExtendedDSTest} from "./ExtendedDSTest.sol";
 import {stdCheats} from "forge-std/stdlib.sol";
-import {IVault} from "../../interface/Vault.sol";
+import {Vm} from "forge-std/Vm.sol";
+import {IVault} from "../../interfaces/Vault.sol";
 
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../../Strategy.sol";
@@ -23,6 +24,10 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     Strategy public strategy;
     IERC20 public weth;
     IERC20 public want;
+
+    // we use custom names that are unlikely to cause collisions so this contract
+    // can be inherited easily
+    Vm public constant vm_std_cheats = Vm(address(uint160(uint256(keccak256('hevm cheat code')))));
 
     // NOTE: feel free change these vars to adjust for your strategy testing
     IERC20 public constant DAI =
