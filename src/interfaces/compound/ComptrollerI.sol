@@ -5,7 +5,9 @@ pragma experimental ABIEncoderV2;
 import "./CTokenI.sol";
 
 interface ComptrollerI {
-    function enterMarkets(address[] calldata cTokens) external returns (uint256[] memory);
+    function enterMarkets(address[] calldata cTokens)
+        external
+        returns (uint256[] memory);
 
     function exitMarket(address cToken) external returns (uint256);
 

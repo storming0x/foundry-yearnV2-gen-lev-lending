@@ -53,7 +53,11 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
     // 0 = no cooldown or past withdraw period
     // 1 = claim period
     // 2 = cooldown initiated, future claim period
-    enum CooldownStatus {None, Claim, Initiated}
+    enum CooldownStatus {
+        None,
+        Claim,
+        Initiated
+    }
 
     // SWAP routers
     IUni private constant UNI_V2_ROUTER =
@@ -81,7 +85,11 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
     uint256 public minRatio;
     uint256 public minRewardToSell;
 
-    enum SwapRouter {UniV2, SushiV2, UniV3}
+    enum SwapRouter {
+        UniV2,
+        SushiV2,
+        UniV3
+    }
     SwapRouter public swapRouter = SwapRouter.UniV2; // only applied to aave => want, stkAave => aave always uses v3
 
     bool public sellStkAave;
@@ -142,14 +150,15 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         alreadyAdjusted = false;
 
         // Set aave tokens
-        (address _aToken, , address _debtToken) =
-            protocolDataProvider.getReserveTokensAddresses(address(want));
+        (address _aToken, , address _debtToken) = protocolDataProvider
+            .getReserveTokensAddresses(address(want));
         aToken = IAToken(_aToken);
         debtToken = IVariableDebtToken(_debtToken);
 
         // Let collateral targets
-        (uint256 ltv, uint256 liquidationThreshold) =
-            getProtocolCollatRatios(address(want));
+        (uint256 ltv, uint256 liquidationThreshold) = getProtocolCollatRatios(
+            address(want)
+        );
         targetCollatRatio = liquidationThreshold - DEFAULT_COLLAT_TARGET_MARGIN;
         maxCollatRatio = liquidationThreshold - DEFAULT_COLLAT_MAX_MARGIN;
         maxBorrowCollatRatio = ltv - DEFAULT_COLLAT_MAX_MARGIN;
@@ -183,8 +192,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         uint256 _maxBorrowCollatRatio,
         uint256 _daiBorrowCollatRatio
     ) external onlyVaultManagers {
-        (uint256 ltv, uint256 liquidationThreshold) =
-            getProtocolCollatRatios(address(want));
+        (uint256 ltv, uint256 liquidationThreshold) = getProtocolCollatRatios(
+            address(want)
+        );
         (uint256 daiLtv, ) = getProtocolCollatRatios(dai);
         require(_targetCollatRatio < liquidationThreshold);
         require(_maxCollatRatio < liquidationThreshold);
@@ -252,16 +262,15 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
     }
 
     function estimatedTotalAssets() public view override returns (uint256) {
-        uint256 balanceExcludingRewards =
-            balanceOfWant() + getCurrentSupply();
+        uint256 balanceExcludingRewards = balanceOfWant() + getCurrentSupply();
 
         // if we don't have a position, don't worry about rewards
         if (balanceExcludingRewards < minWant) {
             return balanceExcludingRewards;
         }
 
-        uint256 rewards =
-            estimatedRewardsInWant() * (MAX_BPS - PESSIMISM_FACTOR)/MAX_BPS;
+        uint256 rewards = (estimatedRewardsInWant() *
+            (MAX_BPS - PESSIMISM_FACTOR)) / MAX_BPS;
 
         return balanceExcludingRewards + rewards;
     }
@@ -270,15 +279,14 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         uint256 aaveBalance = balanceOfAave();
         uint256 stkAaveBalance = balanceOfStkAave();
 
-        uint256 pendingRewards =
-            incentivesController.getRewardsBalance(
-                getAaveAssets(),
-                address(this)
-            );
+        uint256 pendingRewards = incentivesController.getRewardsBalance(
+            getAaveAssets(),
+            address(this)
+        );
         uint256 stkAaveDiscountFactor = MAX_BPS - maxStkAavePriceImpactBps;
-        uint256 combinedStkAave =
-            pendingRewards + stkAaveBalance * stkAaveDiscountFactor / MAX_BPS;
-
+        uint256 combinedStkAave = pendingRewards +
+            (stkAaveBalance * stkAaveDiscountFactor) /
+            MAX_BPS;
 
         return tokenToWant(aave, aaveBalance + combinedStkAave);
     }
@@ -304,15 +312,14 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
 
         if (totalDebt > totalAssets) {
             // we have losses
-            unchecked { 
+            unchecked {
                 _loss = totalDebt - totalAssets;
-            }  
+            }
         } else {
             // we have profit
-            unchecked { 
+            unchecked {
                 _profit = totalAssets - totalDebt;
-            } 
-            
+            }
         }
 
         // free funds to repay debt + profit to the strategy
@@ -382,7 +389,7 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
             // we should free funds
             unchecked {
                 uint256 amountRequired = _debtOutstanding - wantBalance;
-                 // NOTE: vault will take free funds during the next harvest
+                // NOTE: vault will take free funds during the next harvest
                 _freeFunds(amountRequired);
             }
         } else if (currentCollatRatio < targetCollatRatio) {
@@ -394,11 +401,10 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         } else if (currentCollatRatio > targetCollatRatio) {
             if (currentCollatRatio - targetCollatRatio > minRatio) {
                 (uint256 deposits, uint256 borrows) = getCurrentPosition();
-                uint256 newBorrow =
-                    getBorrowFromSupply(
-                        deposits - borrows,
-                        targetCollatRatio
-                    );
+                uint256 newBorrow = getBorrowFromSupply(
+                    deposits - borrows,
+                    targetCollatRatio
+                );
                 _leverDownTo(newBorrow, borrows);
             }
         }
@@ -443,8 +449,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
             return false;
         }
         // pull the liquidation liquidationThreshold from aave to be extra safu
-        (, uint256 liquidationThreshold) =
-            getProtocolCollatRatios(address(want));
+        (, uint256 liquidationThreshold) = getProtocolCollatRatios(
+            address(want)
+        );
 
         uint256 currentCollatRatio = getCurrentCollatRatio();
 
@@ -452,7 +459,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
             return true;
         }
 
-        return (liquidationThreshold - currentCollatRatio) <= LIQUIDATION_WARNING_THRESHOLD;
+        return
+            (liquidationThreshold - currentCollatRatio) <=
+            LIQUIDATION_WARNING_THRESHOLD;
     }
 
     function liquidateAllPositions()
@@ -526,8 +535,8 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
 
         // Always keep 1 wei to get around cooldown clear
         if (sellStkAave && stkAaveBalance >= minRewardToSell + 1) {
-            uint256 minAAVEOut =
-                stkAaveBalance * (MAX_BPS - maxStkAavePriceImpactBps) / MAX_BPS;
+            uint256 minAAVEOut = (stkAaveBalance *
+                (MAX_BPS - maxStkAavePriceImpactBps)) / MAX_BPS;
             _sellSTKAAVEToAAVE(stkAaveBalance - 1, minAAVEOut);
         }
 
@@ -564,10 +573,14 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
 
         if (isFlashMintActive) {
             // The best approach is to lever up using regular method, then finish with flash loan
-            totalAmountToBorrow = totalAmountToBorrow - _leverUpStep(totalAmountToBorrow);
+            totalAmountToBorrow =
+                totalAmountToBorrow -
+                _leverUpStep(totalAmountToBorrow);
 
             if (totalAmountToBorrow > minWant) {
-                totalAmountToBorrow = totalAmountToBorrow - _leverUpFlashLoan(totalAmountToBorrow);
+                totalAmountToBorrow =
+                    totalAmountToBorrow -
+                    _leverUpFlashLoan(totalAmountToBorrow);
             }
         } else {
             for (
@@ -575,15 +588,19 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
                 i < maxIterations && totalAmountToBorrow > minWant;
                 i++
             ) {
-                totalAmountToBorrow = totalAmountToBorrow - _leverUpStep(totalAmountToBorrow);
+                totalAmountToBorrow =
+                    totalAmountToBorrow -
+                    _leverUpStep(totalAmountToBorrow);
             }
         }
     }
 
     function _leverUpFlashLoan(uint256 amount) internal returns (uint256) {
         (uint256 deposits, uint256 borrows) = getCurrentPosition();
-        uint256 depositsToMeetLtv =
-            getDepositFromBorrow(borrows, maxBorrowCollatRatio);
+        uint256 depositsToMeetLtv = getDepositFromBorrow(
+            borrows,
+            maxBorrowCollatRatio
+        );
         uint256 depositsDeficitToMeetLtv = 0;
         if (depositsToMeetLtv > deposits) {
             unchecked {
@@ -609,11 +626,10 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
 
         // calculate how much borrow can I take
         (uint256 deposits, uint256 borrows) = getCurrentPosition();
-        uint256 canBorrow =
-            getBorrowFromDeposit(
-                deposits + wantBalance,
-                maxBorrowCollatRatio
-            );
+        uint256 canBorrow = getBorrowFromDeposit(
+            deposits + wantBalance,
+            maxBorrowCollatRatio
+        );
 
         if (canBorrow <= borrows) {
             return 0;
@@ -640,7 +656,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
             uint256 totalRepayAmount = currentBorrowed - newAmountBorrowed;
 
             if (isFlashMintActive) {
-                totalRepayAmount = totalRepayAmount - _leverDownFlashLoan(totalRepayAmount);
+                totalRepayAmount =
+                    totalRepayAmount -
+                    _leverDownFlashLoan(totalRepayAmount);
             }
 
             uint256 _maxCollatRatio = maxCollatRatio;
@@ -664,15 +682,17 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         // deposit back to get targetCollatRatio (we always need to leave this in this ratio)
         (uint256 deposits, uint256 borrows) = getCurrentPosition();
         uint256 _targetCollatRatio = targetCollatRatio;
-        uint256 targetDeposit =
-            getDepositFromBorrow(borrows, _targetCollatRatio);
+        uint256 targetDeposit = getDepositFromBorrow(
+            borrows,
+            _targetCollatRatio
+        );
         if (targetDeposit > deposits) {
             unchecked {
                 uint256 toDeposit = targetDeposit - deposits;
                 if (toDeposit > minWant) {
                     _depositCollateral(Math.min(toDeposit, balanceOfWant()));
                 }
-            }      
+            }
         } else {
             _withdrawExcessCollateral(_targetCollatRatio);
         }
@@ -784,7 +804,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         (uint256 deposits, uint256 borrows) = getCurrentPosition();
 
         if (deposits > 0) {
-            currentCollatRatio = borrows * COLLATERAL_RATIO_PRECISION / deposits;
+            currentCollatRatio =
+                (borrows * COLLATERAL_RATIO_PRECISION) /
+                deposits;
         }
     }
 
@@ -804,13 +826,13 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         }
 
         // KISS: just use a v2 router for quotes which aren't used in critical logic
-        IUni router =
-            swapRouter == SwapRouter.SushiV2 ? SUSHI_V2_ROUTER : UNI_V2_ROUTER;
-        uint256[] memory amounts =
-            router.getAmountsOut(
-                amount,
-                getTokenOutPathV2(token, address(want))
-            );
+        IUni router = swapRouter == SwapRouter.SushiV2
+            ? SUSHI_V2_ROUTER
+            : UNI_V2_ROUTER;
+        uint256[] memory amounts = router.getAmountsOut(
+            amount,
+            getTokenOutPathV2(token, address(want))
+        );
 
         return amounts[amounts.length - 1];
     }
@@ -825,12 +847,13 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
     }
 
     function _checkCooldown() internal view returns (CooldownStatus) {
-        uint256 cooldownStartTimestamp =
-            IStakedAave(stkAave).stakersCooldowns(address(this));
+        uint256 cooldownStartTimestamp = IStakedAave(stkAave).stakersCooldowns(
+            address(this)
+        );
         uint256 COOLDOWN_SECONDS = IStakedAave(stkAave).COOLDOWN_SECONDS();
         uint256 UNSTAKE_WINDOW = IStakedAave(stkAave).UNSTAKE_WINDOW();
-        uint256 nextClaimStartTimestamp =
-            cooldownStartTimestamp + COOLDOWN_SECONDS;
+        uint256 nextClaimStartTimestamp = cooldownStartTimestamp +
+            COOLDOWN_SECONDS;
 
         if (cooldownStartTimestamp == 0) {
             return CooldownStatus.None;
@@ -851,8 +874,8 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         pure
         returns (address[] memory _path)
     {
-        bool is_weth =
-            _token_in == address(weth) || _token_out == address(weth);
+        bool is_weth = _token_in == address(weth) ||
+            _token_out == address(weth);
         _path = new address[](is_weth ? 2 : 3);
         _path[0] = _token_in;
 
@@ -901,10 +924,9 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
                 )
             );
         } else {
-            IUni router =
-                swapRouter == SwapRouter.UniV2
-                    ? UNI_V2_ROUTER
-                    : SUSHI_V2_ROUTER;
+            IUni router = swapRouter == SwapRouter.UniV2
+                ? UNI_V2_ROUTER
+                : SUSHI_V2_ROUTER;
             router.swapExactTokensForTokens(
                 amountIn,
                 minOut,
@@ -955,7 +977,7 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         pure
         returns (uint256)
     {
-        return deposit * collatRatio / COLLATERAL_RATIO_PRECISION;
+        return (deposit * collatRatio) / COLLATERAL_RATIO_PRECISION;
     }
 
     function getDepositFromBorrow(uint256 borrow, uint256 collatRatio)
@@ -963,7 +985,7 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         pure
         returns (uint256)
     {
-        return borrow * COLLATERAL_RATIO_PRECISION / collatRatio;
+        return (borrow * COLLATERAL_RATIO_PRECISION) / collatRatio;
     }
 
     function getBorrowFromSupply(uint256 supply, uint256 collatRatio)
@@ -972,7 +994,7 @@ contract Strategy is BaseStrategy, IERC3156FlashBorrower {
         returns (uint256)
     {
         return
-            supply * collatRatio/ (COLLATERAL_RATIO_PRECISION - collatRatio);
+            (supply * collatRatio) / (COLLATERAL_RATIO_PRECISION - collatRatio);
     }
 
     function approveMaxSpend(address token, address spender) internal {
