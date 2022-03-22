@@ -37,6 +37,8 @@ contract Utils is ExtendedDSTest {
         );
         console.log("Current Lend", toUnits(_vault, lend));
         console.log("Current Borrow", toUnits(_vault, borrow));
+        // decimals expressed as 5 digit unit
+        // 10000 = 1
         console.log("Current LTV Ratio", (ratio * 10000) / 10**18);
         console.log(
             "Target LTV Ratio",
@@ -56,6 +58,6 @@ contract Utils is ExtendedDSTest {
         internal
         returns (uint256)
     {
-        return (_amount / (10**_vault.decimals())) * 10000;
+        return (_amount / (10**_vault.decimals()));
     }
 }

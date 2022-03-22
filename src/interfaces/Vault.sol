@@ -136,8 +136,16 @@ interface IVault is IERC20 {
 
     function setEmergencyShutdown(bool active) external;
 
+    function setManagementFee(uint256 fee) external;
+
     function updateStrategyDebtRatio(address strategy, uint256 debtRatio)
         external;
+
+    function withdraw(
+        uint256 maxShare,
+        address recipient,
+        uint256 maxLoss
+    ) external;
 
     /**
      * View the governance address of the Vault to assert privileged functions

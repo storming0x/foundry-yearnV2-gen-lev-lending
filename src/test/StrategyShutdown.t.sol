@@ -3,76 +3,46 @@ pragma solidity ^0.8.12;
 
 import {StrategyFixture} from "./utils/StrategyFixture.sol";
 
+// TODO: Add tests that show proper operation of this strategy through "emergencyExit"
+//       Make sure to demonstrate the "worst case losses" as well as the time it takes
+
 contract StrategyShutdownTest is StrategyFixture {
     function setUp() public override {
         super.setUp();
     }
 
-    function testVaultShutdownCanWithdraw(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > 0.1 ether && _amount < 10e18);
+    function testShutdown(uint256 _amount) public {
+        vm_std_cheats.assume(
+            _amount > 0.1 ether && _amount < 100_000_000 ether
+        );
+        tip(address(want), address(user), _amount);
 
-        // Deposit to the vault
-        vm_std_cheats.prank(user);
-        want.approve(address(vault), _amount);
-        vm_std_cheats.prank(user);
-        vault.deposit(_amount);
-        assertEq(want.balanceOf(address(vault)), _amount);
-
-        uint256 bal = want.balanceOf(user);
-        if (bal > 0) {
-            vm_std_cheats.prank(user);
-            want.transfer(address(0), bal);
-        }
-
-        // Harvest 1: Send funds through the strategy
-        skip(3600 * 7);
-        vm_std_cheats.roll(block.number + 1);
+        // Deposit to the vault and harvest
+        actions.userDeposit(user, vault, want, _amount);
+        skip(1);
+        vm_std_cheats.prank(gov);
         strategy.harvest();
-        assertEq(strategy.estimatedTotalAssets(), _amount);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
-        // Set Emergency
-        vault.setEmergencyShutdown(true);
+        // Generate profit
+        uint256 profitAmount = (_amount * 10) / 100;
+        actions.generateProfit(strategy, whale, profitAmount);
 
-        // Withdraw (does it work, do you get what you expect)
-        vm_std_cheats.prank(user);
-        vault.withdraw();
-
-        assertEq(want.balanceOf(user), _amount);
-    }
-
-    function testBasicShutdown(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > 0.1 ether && _amount < 10e18);
-
-        // Deposit to the vault
-        vm_std_cheats.prank(user);
-        want.approve(address(vault), _amount);
-        vm_std_cheats.prank(user);
-        vault.deposit(_amount);
-        assertEq(want.balanceOf(address(vault)), _amount);
-
-        // Harvest 1: Send funds through the strategy
-        skip(1 days);
-        vm_std_cheats.roll(block.number + 100);
-        strategy.harvest();
-        assertEq(strategy.estimatedTotalAssets(), _amount);
-
-        // Earn interest
-        skip(1 days);
-        vm_std_cheats.roll(block.number + 1);
-
-        // Harvest 2: Realize profit
+        skip(1);
+        vm_std_cheats.prank(gov);
         strategy.harvest();
         skip(6 hours);
-        vm_std_cheats.roll(block.number + 1);
 
-        // Set emergency
-        vm_std_cheats.prank(strategist);
-        strategy.setEmergencyExit();
-
-        strategy.harvest(); // Remove funds from strategy
-
-        assertEq(want.balanceOf(address(strategy)), 0);
-        assertGe(want.balanceOf(address(vault)), _amount); // The vault has all funds
-        // NOTE: May want to tweak this based on potential loss during migration
+        uint256 totalGain = profitAmount;
+        uint256 totalLoss = 0;
+        uint256 totalDebt = _amount;
+        checks.checkAccounting(
+            vault,
+            strategy,
+            totalGain,
+            totalLoss,
+            totalDebt,
+            DELTA
+        );
     }
 }
