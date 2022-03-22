@@ -14,12 +14,13 @@ import {Utils} from "./Utils.sol";
 
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../../Strategy.sol";
+import {LevAaveFactory} from "../../LevAaveFactory.sol";
 
 // Artifact paths for deploying from the deps folder, assumes that the command is run from
 // the project root.
 string constant vaultArtifact = "artifacts/Vault.json";
 
-// Base fixture deploying Vault
+// @dev Base fixture deploying Vault
 contract StrategyFixture is ExtendedDSTest, stdCheats {
     using SafeERC20 for IERC20;
 
@@ -79,7 +80,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         vm_std_cheats.stopPrank();
     }
 
-    // Deploys a vault
+    // @dev Deploys a vault
     function deployVault(
         address _token,
         address _gov,
@@ -107,14 +108,24 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         return address(vault);
     }
 
-    // Deploys a strategy
+    // @dev Deploys a strategy
     function deployStrategy(address _vault) public returns (address) {
         Strategy _strategy = new Strategy(_vault);
 
         return address(_strategy);
     }
 
-    // Deploys a vault and strategy attached to vault
+    // @dev Deploys levAaveFactory
+    function deployLevAaveFactory(address _vault)
+        public
+        returns (address _levAaveFactory)
+    {
+        LevAaveFactory _levAaveFactory = new LevAaveFactory(_vault);
+
+        return address(_levAaveFactory);
+    }
+
+    // @dev Deploys a vault and strategy attached to vault
     function deployVaultAndStrategy(
         address _token,
         address _gov,
