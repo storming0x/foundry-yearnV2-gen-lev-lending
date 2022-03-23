@@ -150,8 +150,10 @@ contract StrategyOperationsTest is StrategyFixture {
         vault.revokeStrategy(address(strategy));
         vm_std_cheats.prank(strategist);
         strategy.harvest();
-        int256 apr = ((int256(want.balanceOf(address(vault))) - int256(_amount)) * 52 * 100) /
-            int256(_amount);
+        int256 apr = ((int256(want.balanceOf(address(vault))) -
+            int256(_amount)) *
+            52 *
+            100) / int256(_amount);
         uint256 total = _amount / (10**vault.decimals());
         console.log("APR:");
         console.logInt(apr);
@@ -194,8 +196,10 @@ contract StrategyOperationsTest is StrategyFixture {
 
         vm_std_cheats.prank(strategist);
         strategy.harvest();
-        int256 apr = ((int256(want.balanceOf(address(vault))) - int256(_amount)) * 52 * 100) /
-            int256(_amount);
+        int256 apr = ((int256(want.balanceOf(address(vault))) -
+            int256(_amount)) *
+            52 *
+            100) / int256(_amount);
         uint256 total = _amount / (10**vault.decimals());
         console.log("APR:");
         console.logInt(apr);

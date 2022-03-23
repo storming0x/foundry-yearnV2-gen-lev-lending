@@ -73,6 +73,18 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             strategist
         );
 
+        vm_std_cheats.label(address(vault), "Vault");
+        vm_std_cheats.label(address(strategy), "Strategy");
+        vm_std_cheats.label(address(want), "Want");
+        vm_std_cheats.label(gov, "Gov");
+        vm_std_cheats.label(user, "User");
+        vm_std_cheats.label(whale, "Whale");
+        vm_std_cheats.label(rewards, "Rewards");
+        vm_std_cheats.label(guardian, "Guardian");
+        vm_std_cheats.label(management, "Management");
+        vm_std_cheats.label(strategist, "Strategist");
+        vm_std_cheats.label(keeper, "Keeper");
+
         // do here additional setup
         vm_std_cheats.startPrank(gov);
         vault.setManagementFee(0);
