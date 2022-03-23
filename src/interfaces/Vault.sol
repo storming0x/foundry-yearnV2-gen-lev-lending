@@ -99,6 +99,8 @@ interface IVault is IERC20 {
      */
     function debtOutstanding() external view returns (uint256);
 
+    function debtOutstanding(address _strategy) external view returns (uint256);
+
     /**
      * View how much the Vault expect this Strategy to return at the current
      * block, based on its present performance (since its last report). Can be
