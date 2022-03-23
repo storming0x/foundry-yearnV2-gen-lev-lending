@@ -12,6 +12,8 @@ import {ILendingPoolAddressesProvider} from "../../interfaces/aave/ILendingPoolA
 import {IProtocolDataProvider} from "../../interfaces/aave/IProtocolDataProvider.sol";
 import {Strategy} from "../../Strategy.sol";
 
+import "forge-std/console.sol";
+
 contract Actions is ExtendedDSTest, stdCheats {
     Vm public constant vm_std_cheats =
         Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
@@ -49,5 +51,11 @@ contract Actions is ExtendedDSTest, stdCheats {
         IERC20(want).approve(address(lp), type(uint256).max);
         vm_std_cheats.prank(_whale);
         lp.deposit(want, _amount, address(_strategy), 0);
+    }
+
+    function generateLoss(Strategy _strategy, uint256 _amount) public {
+        address aToken = address(_strategy.aToken());
+        vm_std_cheats.prank(address(_strategy));
+        IERC20(aToken).transfer(aToken, _amount);
     }
 }
