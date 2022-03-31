@@ -5,6 +5,7 @@ import {StrategyFixture} from "./utils/StrategyFixture.sol";
 
 // NOTE: if the name of the strat or file changes this needs to be updated
 import {Strategy} from "../Strategy.sol";
+import {LevAaveFactory} from "../LevAaveFactory.sol";
 
 contract StrategyMigrationTest is StrategyFixture {
     function setUp() public override {
@@ -28,7 +29,11 @@ contract StrategyMigrationTest is StrategyFixture {
         uint256 preWantBalance = want.balanceOf(address(strategy));
 
         vm_std_cheats.prank(strategist);
-        Strategy newStrategy = Strategy(deployStrategy(address(vault)));
+        LevAaveFactory levAaveFactory = LevAaveFactory(
+            deployLevAaveFactory(address(vault))
+        );
+        vm_std_cheats.prank(strategist);
+        Strategy newStrategy = Strategy(levAaveFactory.original());
         vm_std_cheats.label(address(newStrategy), "newStrategy");
         tip(address(weth), whale, 1e6);
         vm_std_cheats.prank(whale);
@@ -60,6 +65,7 @@ contract StrategyMigrationTest is StrategyFixture {
             DELTA
         );
 
+        skip(1);
         vm_std_cheats.prank(gov);
         newStrategy.harvest();
     }
