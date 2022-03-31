@@ -9,17 +9,16 @@ contract StrategyDeleverage is StrategyFixture {
         super.setUp();
     }
 
-    function testDeleverageToZero(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), user, _amount);
+    function testDeleverageToZero() public {
+        tip(address(want), user, bigAmount);
 
         // Deposit to the vault and harvest
-        actions.userDeposit(user, vault, want, _amount);
+        actions.userDeposit(user, vault, want, bigAmount);
         skip(1);
         vm_std_cheats.prank(strategist);
         strategy.harvest();
 
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), bigAmount, DELTA);
 
         skip(1 weeks);
         utils.strategyStatus(vault, strategy);
@@ -43,17 +42,16 @@ contract StrategyDeleverage is StrategyFixture {
         assertRelApproxEq(sp.totalLoss, 0, DELTA);
     }
 
-    function testLargeDeleverageParameterChange(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), user, _amount);
+    function testLargeDeleverageParameterChange() public {
+        tip(address(want), user, bigAmount);
 
         // Deposit to the vault and harvest
-        actions.userDeposit(user, vault, want, _amount);
+        actions.userDeposit(user, vault, want, bigAmount);
         skip(1);
         vm_std_cheats.prank(strategist);
         strategy.harvest();
 
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), bigAmount, DELTA);
 
         skip(1 weeks);
 
@@ -95,17 +93,16 @@ contract StrategyDeleverage is StrategyFixture {
         assertRelApproxEq(sp.totalLoss, 0, DELTA);
     }
 
-    function testLargeManualDeleverageToZero(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), user, _amount);
+    function testLargeManualDeleverageToZero() public {
+        tip(address(want), user, bigAmount);
 
         // Deposit to the vault and harvest
-        actions.userDeposit(user, vault, want, _amount);
+        actions.userDeposit(user, vault, want, bigAmount);
         skip(1);
         vm_std_cheats.prank(strategist);
         strategy.harvest();
 
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), bigAmount, DELTA);
 
         skip(1 weeks);
         utils.strategyStatus(vault, strategy);
@@ -147,7 +144,7 @@ contract StrategyDeleverage is StrategyFixture {
 
         skip(6 hours);
         utils.strategyStatus(vault, strategy);
-        assertGt(strategy.estimatedTotalAssets(), _amount);
+        assertGt(strategy.estimatedTotalAssets(), bigAmount);
 
         vm_std_cheats.prank(gov);
         vault.revokeStrategy(address(strategy));

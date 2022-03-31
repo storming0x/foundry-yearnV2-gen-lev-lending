@@ -48,8 +48,10 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     // @dev maximum amount of want tokens deposited based on @maxDollarNotional
     uint256 public maxFuzzAmt;
     // @dev maximum dollar amount of tokens to be deposited
-    uint256 public maxDollarNotional = 49_000_000;
+    uint256 public constant maxDollarNotional = 1_000_000;
+    uint256 public constant bigDollarNotional = 49_000_000;
     uint256 public constant DELTA = 10**5;
+    uint256 public bigAmount;
 
     mapping(string => address) tokenAddrs;
     mapping(string => uint256) tokenPrices;
@@ -85,6 +87,9 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         minFuzzAmt = 10**vault.decimals() / 10;
         maxFuzzAmt =
             uint256(maxDollarNotional / tokenPrices[token]) *
+            10**vault.decimals();
+        bigAmount =
+            uint256(bigDollarNotional / tokenPrices[token]) *
             10**vault.decimals();
 
         vm_std_cheats.label(address(vault), "Vault");
@@ -158,7 +163,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     }
 
     // @dev Deploys a strategy
-    function deployStrategy(address _vault) public returns (address) {
+    function deployStrategy() public returns (address) {
         address _strategy = levAaveFactory.original();
 
         return address(_strategy);
@@ -205,7 +210,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         levAaveFactory = LevAaveFactory(deployLevAaveFactory(address(vault)));
 
         vm_std_cheats.prank(_strategist);
-        _strategy = deployStrategy(_vault);
+        _strategy = deployStrategy();
         strategy = Strategy(_strategy);
 
         vm_std_cheats.prank(_strategist);
