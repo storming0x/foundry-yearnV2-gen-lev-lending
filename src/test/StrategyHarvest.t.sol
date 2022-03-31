@@ -10,9 +10,7 @@ contract StrategyHarvest is StrategyFixture {
     }
 
     function testProfitableHarvest(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         // Deposit to the vault
@@ -49,9 +47,7 @@ contract StrategyHarvest is StrategyFixture {
     }
 
     function testLossyHarvest(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         // Deposit to the vault
@@ -90,9 +86,7 @@ contract StrategyHarvest is StrategyFixture {
     // tests harvesting a strategy twice, once with loss and another with profit
     // it checks that even with previous profit and losses, accounting works as expected
     function testChoppyHarvest(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         // Deposit to the vault

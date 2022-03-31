@@ -12,9 +12,7 @@ contract StrategyShutdownTest is StrategyFixture {
     }
 
     function testShutdown(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest

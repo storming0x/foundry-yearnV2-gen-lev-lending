@@ -29,9 +29,7 @@ contract StrategyOperationsTest is StrategyFixture {
 
     /// Test Operations
     function testOperation(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault
@@ -58,9 +56,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testWithdraw(uint256 _amount, bool _isFlashLoanActive) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault
@@ -115,9 +111,7 @@ contract StrategyOperationsTest is StrategyFixture {
     // @dev See https://github.com/gakonst/foundry/issues/871
     //      on how to fuzz enums in foundry
     function testApr(uint256 _amount, uint8 _swapRouter) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         vm_std_cheats.assume(_swapRouter <= 2);
         Strategy.SwapRouter sr = Strategy.SwapRouter(_swapRouter);
         tip(address(want), address(user), _amount);
@@ -161,9 +155,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testAprWithCooldown(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Don't sell stkAave, cool it down
@@ -207,9 +199,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testHarvestAfterLongIdlePeriod(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault
@@ -232,9 +222,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testEmergencyExit(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault
@@ -256,9 +244,7 @@ contract StrategyOperationsTest is StrategyFixture {
     function testIncreaseDebtRatio(uint256 _amount, uint16 _startingDebtRatio)
         public
     {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         vm_std_cheats.assume(
             _startingDebtRatio >= 100 && _startingDebtRatio < 10_000
         );
@@ -292,9 +278,7 @@ contract StrategyOperationsTest is StrategyFixture {
     function testDecreaseDebtRatio(uint256 _amount, uint16 _endingDebtRatio)
         public
     {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         vm_std_cheats.assume(
             _endingDebtRatio >= 100 && _endingDebtRatio < 10_000
         );
@@ -327,9 +311,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testLargeDeleverage(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest
@@ -358,9 +340,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testLargerDeleverage(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest
@@ -391,9 +371,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testSweep(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Strategy want token doesn't work
@@ -425,9 +403,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testTriggers(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest
@@ -443,9 +419,7 @@ contract StrategyOperationsTest is StrategyFixture {
     }
 
     function testTend(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest

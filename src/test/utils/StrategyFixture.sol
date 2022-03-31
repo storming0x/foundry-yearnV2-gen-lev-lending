@@ -43,9 +43,15 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     address public strategist = address(6);
     address public keeper = address(7);
 
+    uint256 public minFuzzAmt;
+    // @dev maximum amount of want tokens deposited based on @maxDollarNotional
+    uint256 public maxFuzzAmt;
+    // @dev maximum dollar amount of tokens to be deposited
+    uint256 public maxDollarNotional = 1_000_000;
     uint256 public constant DELTA = 10**5;
 
     mapping(string => address) tokenAddrs;
+    mapping(string => uint256) tokenPrices;
 
     // utils
     Actions actions;
@@ -57,9 +63,11 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         checks = new Checks();
         utils = new Utils();
 
+        _setTokenPrices();
         _setTokenAddrs();
+        string memory token = "DAI"; // is this meant to be WETH?
         weth = IERC20(tokenAddrs["WETH"]);
-        want = IERC20(tokenAddrs["DAI"]);
+        want = IERC20(tokenAddrs[token]);
 
         deployVaultAndStrategy(
             address(want),
@@ -73,6 +81,11 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             strategist
         );
 
+        minFuzzAmt = 10**vault.decimals() / 10;
+        maxFuzzAmt =
+            uint256(maxDollarNotional / tokenPrices[token]) *
+            10**vault.decimals();
+
         vm_std_cheats.label(address(vault), "Vault");
         vm_std_cheats.label(address(strategy), "Strategy");
         vm_std_cheats.label(address(want), "Want");
@@ -84,6 +97,29 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         vm_std_cheats.label(management, "Management");
         vm_std_cheats.label(strategist, "Strategist");
         vm_std_cheats.label(keeper, "Keeper");
+
+        // Strategy specific labels for tracing
+        vm_std_cheats.label(
+            0x4da27a545c0c5B758a6BA100e3a049001de870f5,
+            "stkAave"
+        );
+        vm_std_cheats.label(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9, "aave");
+        vm_std_cheats.label(
+            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D,
+            "univ2"
+        );
+        vm_std_cheats.label(
+            0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F,
+            "sushiv2"
+        );
+        vm_std_cheats.label(
+            0xE592427A0AEce92De3Edee1F18E0157C05861564,
+            "univ3"
+        );
+        vm_std_cheats.label(
+            0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9,
+            "Lending Pool"
+        );
 
         // do here additional setup
         vm_std_cheats.startPrank(gov);
@@ -122,7 +158,8 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     // @dev Deploys a strategy
     function deployStrategy(address _vault) public returns (address) {
-        Strategy _strategy = new Strategy(_vault);
+        LevAaveFactory _levAaveFactory = new LevAaveFactory(_vault);
+        address _strategy = _levAaveFactory.original();
 
         return address(_strategy);
     }
@@ -183,5 +220,15 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
         tokenAddrs["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         tokenAddrs["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         tokenAddrs["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    }
+
+    function _setTokenPrices() internal {
+        tokenPrices["WBTC"] = 60_000;
+        tokenPrices["WETH"] = 4_000;
+        tokenPrices["LINK"] = 20;
+        tokenPrices["YFI"] = 35_000;
+        tokenPrices["USDT"] = 1;
+        tokenPrices["USDC"] = 1;
+        tokenPrices["DAI"] = 1;
     }
 }

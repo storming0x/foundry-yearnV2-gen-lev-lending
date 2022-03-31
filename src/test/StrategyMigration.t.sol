@@ -15,9 +15,7 @@ contract StrategyMigrationTest is StrategyFixture {
     // Use another copy of the strategy to simmulate the migration
     // Show that nothing is lost.
     function testMigration(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         // Deposit to the vault and harvest
@@ -31,6 +29,7 @@ contract StrategyMigrationTest is StrategyFixture {
 
         vm_std_cheats.prank(strategist);
         Strategy newStrategy = Strategy(deployStrategy(address(vault)));
+        vm_std_cheats.label(address(newStrategy), "newStrategy");
         tip(address(weth), whale, 1e6);
         vm_std_cheats.prank(whale);
         weth.transfer(address(newStrategy), 1e6);
@@ -52,12 +51,12 @@ contract StrategyMigrationTest is StrategyFixture {
         vault.updateStrategyDebtRatio(address(newStrategy), 10_000);
         skip(1);
         vm_std_cheats.prank(gov);
-        newStrategy.harvest();
+        newStrategy.harvest(); // not pulling new funds
 
         assertRelApproxEq(newStrategy.estimatedTotalAssets(), _amount, DELTA);
         assertRelApproxEq(
-            preWantBalance,
             want.balanceOf(address(newStrategy)),
+            preWantBalance,
             DELTA
         );
 

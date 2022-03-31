@@ -11,9 +11,7 @@ contract StrategyClone is StrategyFixture {
     }
 
     function testClone(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         uint256 balanceBefore = want.balanceOf(user);

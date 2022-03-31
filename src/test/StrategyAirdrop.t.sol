@@ -10,9 +10,7 @@ contract StrategyAirdrop is StrategyFixture {
     }
 
     function testAirdrop(uint256 _amount) public {
-        vm_std_cheats.assume(
-            _amount > 0.1 ether && _amount < 100_000_000 ether
-        );
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
         tip(address(want), user, _amount);
 
         // Deposit to the vault
