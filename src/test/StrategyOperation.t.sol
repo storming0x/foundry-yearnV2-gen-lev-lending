@@ -55,58 +55,58 @@ contract StrategyOperationsTest is StrategyFixture {
         assertRelApproxEq(want.balanceOf(user), balanceBefore, DELTA);
     }
 
-    function testWithdraw(uint256 _amount, bool _isFlashLoanActive) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), address(user), _amount);
+    // function testWithdraw(uint256 _amount, bool _isFlashLoanActive) public {
+    //     vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+    //     tip(address(want), address(user), _amount);
 
-        // Deposit to the vault
-        uint256 balanceBefore = want.balanceOf(user);
-        actions.userDeposit(user, vault, want, _amount);
+    //     // Deposit to the vault
+    //     uint256 balanceBefore = want.balanceOf(user);
+    //     actions.userDeposit(user, vault, want, _amount);
 
-        // harvest
-        skip(1);
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+    //     // harvest
+    //     skip(1);
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
-        skip(1 days);
-        utils.strategyStatus(vault, strategy);
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        skip(6 hours);
+    //     skip(1 days);
+    //     utils.strategyStatus(vault, strategy);
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     skip(6 hours);
 
-        vm_std_cheats.prank(gov);
-        strategy.setIsFlashMintActive(_isFlashLoanActive);
-        // remove this statement
-        if (!_isFlashLoanActive) {
-            vm_std_cheats.startPrank(gov);
-            strategy.setCollateralTargets(
-                strategy.maxBorrowCollatRatio() - ((2 * 10**18) / 100),
-                strategy.maxCollatRatio(),
-                strategy.maxBorrowCollatRatio(),
-                strategy.daiBorrowCollatRatio()
-            );
-            vm_std_cheats.stopPrank();
-        }
+    //     vm_std_cheats.prank(gov);
+    //     strategy.setIsFlashMintActive(_isFlashLoanActive);
+    //     // remove this statement
+    //     if (!_isFlashLoanActive) {
+    //         vm_std_cheats.startPrank(gov);
+    //         strategy.setCollateralTargets(
+    //             strategy.maxBorrowCollatRatio() - ((2 * 10**18) / 100),
+    //             strategy.maxCollatRatio(),
+    //             strategy.maxBorrowCollatRatio(),
+    //             strategy.daiBorrowCollatRatio()
+    //         );
+    //         vm_std_cheats.stopPrank();
+    //     }
 
-        // withdrawal
-        for (uint256 i = 1; i < 10; i++) {
-            console.log(i);
-            utils.strategyStatus(vault, strategy);
-            vm_std_cheats.prank(user);
-            vault.withdraw(uint256(_amount / 10), user, 10_000);
-            assertGe(want.balanceOf(user), (balanceBefore * i) / 10);
-        }
+    //     // withdrawal
+    //     for (uint256 i = 1; i < 10; i++) {
+    //         console.log(i);
+    //         utils.strategyStatus(vault, strategy);
+    //         vm_std_cheats.prank(user);
+    //         vault.withdraw(uint256(_amount / 10), user, 10_000);
+    //         assertGe(want.balanceOf(user), (balanceBefore * i) / 10);
+    //     }
 
-        skip(1);
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        skip(6 hours);
-        vm_std_cheats.prank(user);
-        vault.withdraw(uint256(_amount / 10));
-        assertGt(want.balanceOf(user), balanceBefore);
-        utils.strategyStatus(vault, strategy);
-    }
+    //     skip(1);
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     skip(6 hours);
+    //     vm_std_cheats.prank(user);
+    //     vault.withdraw(uint256(_amount / 10));
+    //     assertGt(want.balanceOf(user), balanceBefore);
+    //     utils.strategyStatus(vault, strategy);
+    // }
 
     // @dev See https://github.com/gakonst/foundry/issues/871
     //      on how to fuzz enums in foundry
@@ -154,72 +154,72 @@ contract StrategyOperationsTest is StrategyFixture {
         console.log("on ", total);
     }
 
-    function testAprWithCooldown(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), address(user), _amount);
+    // function testAprWithCooldown(uint256 _amount) public {
+    //     vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+    //     tip(address(want), address(user), _amount);
 
-        // Don't sell stkAave, cool it down
-        vm_std_cheats.startPrank(gov);
-        strategy.setRewardBehavior(
-            Strategy.SwapRouter(1),
-            false,
-            true,
-            strategy.minRewardToSell(),
-            strategy.maxStkAavePriceImpactBps(),
-            strategy.stkAaveToAaveSwapFee(),
-            strategy.aaveToWethSwapFee(),
-            strategy.wethToWantSwapFee()
-        );
-        vm_std_cheats.stopPrank();
+    //     // Don't sell stkAave, cool it down
+    //     vm_std_cheats.startPrank(gov);
+    //     strategy.setRewardBehavior(
+    //         Strategy.SwapRouter(1),
+    //         false,
+    //         true,
+    //         strategy.minRewardToSell(),
+    //         strategy.maxStkAavePriceImpactBps(),
+    //         strategy.stkAaveToAaveSwapFee(),
+    //         strategy.aaveToWethSwapFee(),
+    //         strategy.wethToWantSwapFee()
+    //     );
+    //     vm_std_cheats.stopPrank();
 
-        // harvest
-        skip(1);
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+    //     // harvest
+    //     skip(1);
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
-        skip(7 days);
-        vm_std_cheats.prank(gov);
-        vault.revokeStrategy(address(strategy));
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
+    //     skip(7 days);
+    //     vm_std_cheats.prank(gov);
+    //     vault.revokeStrategy(address(strategy));
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
 
-        skip(101 days / 10);
+    //     skip(101 days / 10);
 
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        int256 apr = ((int256(want.balanceOf(address(vault))) -
-            int256(_amount)) *
-            52 *
-            100) / int256(_amount);
-        uint256 total = _amount / (10**vault.decimals());
-        console.log("APR:");
-        console.logInt(apr);
-        console.log("on ", total);
-    }
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     int256 apr = ((int256(want.balanceOf(address(vault))) -
+    //         int256(_amount)) *
+    //         52 *
+    //         100) / int256(_amount);
+    //     uint256 total = _amount / (10**vault.decimals());
+    //     console.log("APR:");
+    //     console.logInt(apr);
+    //     console.log("on ", total);
+    // }
 
-    function testHarvestAfterLongIdlePeriod(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
-        tip(address(want), address(user), _amount);
+    // function testHarvestAfterLongIdlePeriod(uint256 _amount) public {
+    //     vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+    //     tip(address(want), address(user), _amount);
 
-        // Deposit to the vault
-        actions.userDeposit(user, vault, want, _amount);
+    //     // Deposit to the vault
+    //     actions.userDeposit(user, vault, want, _amount);
 
-        // harvest
-        skip(1);
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
-        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+    //     // harvest
+    //     skip(1);
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
+    //     assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
-        utils.strategyStatus(vault, strategy);
-        skip(26 weeks);
-        utils.strategyStatus(vault, strategy);
+    //     utils.strategyStatus(vault, strategy);
+    //     skip(26 weeks);
+    //     utils.strategyStatus(vault, strategy);
 
-        vm_std_cheats.prank(strategist);
-        strategy.harvest();
+    //     vm_std_cheats.prank(strategist);
+    //     strategy.harvest();
 
-        utils.strategyStatus(vault, strategy);
-    }
+    //     utils.strategyStatus(vault, strategy);
+    // }
 
     function testEmergencyExit(uint256 _amount) public {
         vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
