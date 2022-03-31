@@ -36,7 +36,7 @@ contract StrategyMigrationTest is StrategyFixture {
 
         // migration with more than dust reverts, there is no way to transfer the debt position
         vm_std_cheats.prank(gov);
-        vm_std_cheats.expectRevert(bytes(""));
+        vm_std_cheats.expectRevert();
         vault.migrateStrategy(address(strategy), address(newStrategy));
 
         vm_std_cheats.prank(gov);

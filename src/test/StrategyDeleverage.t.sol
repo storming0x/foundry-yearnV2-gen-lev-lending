@@ -115,7 +115,8 @@ contract StrategyDeleverage is StrategyFixture {
             skip(1);
 
             (uint256 deposit, uint256 borrow) = strategy.getCurrentPosition();
-            uint256 theoMinDeposit = borrow * 10**18 / strategy.maxCollatRatio();
+            uint256 theoMinDeposit = (borrow * 10**18) /
+                strategy.maxCollatRatio();
             uint256 stepSize = _min(uint256(deposit - theoMinDeposit), borrow);
 
             vm_std_cheats.prank(gov);
@@ -159,10 +160,7 @@ contract StrategyDeleverage is StrategyFixture {
         assertRelApproxEq(sp.totalLoss, 0, DELTA);
     }
 
-    function _min(
-        uint256 a,
-        uint256 b
-    ) internal returns (uint256) {
+    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a > b ? b : a;
     }
 
@@ -170,7 +168,7 @@ contract StrategyDeleverage is StrategyFixture {
         uint256 a,
         uint256 b,
         uint256 maxPercentDelta
-    ) internal returns (bool) {
+    ) internal pure returns (bool) {
         uint256 delta = a > b ? a - b : b - a;
         uint256 maxRelDelta = b / maxPercentDelta;
 

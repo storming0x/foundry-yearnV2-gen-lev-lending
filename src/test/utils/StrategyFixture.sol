@@ -26,6 +26,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     IVault public vault;
     Strategy public strategy;
+    LevAaveFactory public levAaveFactory;
     IERC20 public weth;
     IERC20 public want;
 
@@ -47,7 +48,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
     // @dev maximum amount of want tokens deposited based on @maxDollarNotional
     uint256 public maxFuzzAmt;
     // @dev maximum dollar amount of tokens to be deposited
-    uint256 public maxDollarNotional = 1_000_000;
+    uint256 public maxDollarNotional = 49_000_000;
     uint256 public constant DELTA = 10**5;
 
     mapping(string => address) tokenAddrs;
@@ -65,7 +66,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
         _setTokenPrices();
         _setTokenAddrs();
-        string memory token = "DAI"; // is this meant to be WETH?
+        string memory token = "DAI";
         weth = IERC20(tokenAddrs["WETH"]);
         want = IERC20(tokenAddrs[token]);
 
@@ -158,8 +159,7 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
 
     // @dev Deploys a strategy
     function deployStrategy(address _vault) public returns (address) {
-        LevAaveFactory _levAaveFactory = new LevAaveFactory(_vault);
-        address _strategy = _levAaveFactory.original();
+        address _strategy = levAaveFactory.original();
 
         return address(_strategy);
     }
@@ -200,6 +200,9 @@ contract StrategyFixture is ExtendedDSTest, stdCheats {
             _guardian,
             _management
         );
+
+        vm_std_cheats.prank(_strategist);
+        levAaveFactory = LevAaveFactory(deployLevAaveFactory(address(vault)));
 
         vm_std_cheats.prank(_strategist);
         _strategy = deployStrategy(_vault);

@@ -24,10 +24,6 @@ contract StrategyClone is StrategyFixture {
         assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
         vm_std_cheats.prank(strategist);
-        LevAaveFactory levAaveFactory = LevAaveFactory(
-            deployLevAaveFactory(address(vault))
-        );
-        vm_std_cheats.prank(strategist);
         Strategy clonedStrategy = Strategy(
             levAaveFactory.cloneLevAave(address(vault))
         );
