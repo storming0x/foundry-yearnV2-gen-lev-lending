@@ -59,7 +59,9 @@ library FlashMintLib {
         // calculate amount of dai we need
         uint256 requiredDAI;
         {
-            requiredDAI = _toDAI(amount, token) * COLLAT_RATIO_PRECISION / collatRatioDAI;
+            requiredDAI =
+                (_toDAI(amount, token) * COLLAT_RATIO_PRECISION) /
+                collatRatioDAI;
 
             uint256 requiredDAIToCloseLTVGap = 0;
             if (depositToCloseLTVGap > 0) {
@@ -71,9 +73,10 @@ library FlashMintLib {
             if (requiredDAI > _maxLiquidity) {
                 requiredDAI = _maxLiquidity;
                 // NOTE: if we cap amountDAI, we reduce amountToken we are taking too
-                amount = _fromDAI(requiredDAI - requiredDAIToCloseLTVGap,
-                    token
-                ) * collatRatioDAI / COLLAT_RATIO_PRECISION;
+                amount =
+                    (_fromDAI(requiredDAI - requiredDAIToCloseLTVGap, token) *
+                        collatRatioDAI) /
+                    COLLAT_RATIO_PRECISION;
             }
         }
 
@@ -81,8 +84,10 @@ library FlashMintLib {
         uint256 _fee = IERC3156FlashLender(LENDER).flashFee(dai, requiredDAI);
         // Check that fees have not been increased without us knowing
         require(_fee == 0);
-        uint256 _allowance =
-            IERC20(dai).allowance(address(this), address(LENDER));
+        uint256 _allowance = IERC20(dai).allowance(
+            address(this),
+            address(LENDER)
+        );
         if (_allowance < requiredDAI) {
             IERC20(dai).approve(address(LENDER), 0);
             IERC20(dai).approve(address(LENDER), type(uint256).max);
@@ -193,7 +198,9 @@ library FlashMintLib {
 
         if (asset == WETH) {
             return
-                _amount * uint256(10)**uint256(IOptionalERC20(dai).decimals()) / _priceOracle().getAssetPrice(dai);
+                (_amount *
+                    uint256(10)**uint256(IOptionalERC20(dai).decimals())) /
+                _priceOracle().getAssetPrice(dai);
         }
 
         address[] memory tokens = new address[](2);
@@ -201,9 +208,9 @@ library FlashMintLib {
         tokens[1] = dai;
         uint256[] memory prices = _priceOracle().getAssetsPrices(tokens);
 
-        uint256 ethPrice =
-            _amount * prices[0] / uint256(10)**uint256(IOptionalERC20(asset).decimals());
-        return ethPrice * DAI_DECIMALS / prices[1];
+        uint256 ethPrice = (_amount * prices[0]) /
+            uint256(10)**uint256(IOptionalERC20(asset).decimals());
+        return (ethPrice * DAI_DECIMALS) / prices[1];
     }
 
     function _fromDAI(uint256 _amount, address asset)
@@ -220,7 +227,8 @@ library FlashMintLib {
 
         if (asset == WETH) {
             return
-                _amount * _priceOracle().getAssetPrice(dai) / uint256(10)**uint256(IOptionalERC20(dai).decimals());
+                (_amount * _priceOracle().getAssetPrice(dai)) /
+                uint256(10)**uint256(IOptionalERC20(dai).decimals());
         }
 
         address[] memory tokens = new address[](2);
@@ -228,10 +236,12 @@ library FlashMintLib {
         tokens[1] = dai;
         uint256[] memory prices = _priceOracle().getAssetsPrices(tokens);
 
-        uint256 ethPrice = _amount * prices[1] / DAI_DECIMALS;
+        uint256 ethPrice = (_amount * prices[1]) / DAI_DECIMALS;
 
         return
-            ethPrice * uint256(10)**uint256(IOptionalERC20(asset).decimals()) / prices[0];
+            (ethPrice *
+                uint256(10)**uint256(IOptionalERC20(asset).decimals())) /
+            prices[0];
     }
 
     function maxLiquidity() public view returns (uint256) {

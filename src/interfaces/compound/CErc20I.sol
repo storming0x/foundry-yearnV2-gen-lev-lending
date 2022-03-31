@@ -14,7 +14,9 @@ interface CErc20I is CTokenI {
 
     function repayBorrow(uint256 repayAmount) external returns (uint256);
 
-    function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256);
+    function repayBorrowBehalf(address borrower, uint256 repayAmount)
+        external
+        returns (uint256);
 
     function liquidateBorrow(
         address borrower,

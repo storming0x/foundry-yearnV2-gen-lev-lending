@@ -2,6 +2,7 @@
 pragma solidity ^0.8.12;
 
 import {StrategyFixture} from "./utils/StrategyFixture.sol";
+import "forge-std/console.sol";
 
 contract StrategyRevokeTest is StrategyFixture {
     function setUp() public override {
@@ -9,39 +10,62 @@ contract StrategyRevokeTest is StrategyFixture {
     }
 
     function testRevokeStrategyFromVault(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > 0.1 ether && _amount < 10e18);
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+        tip(address(want), address(user), _amount);
 
         // Deposit to the vault and harvest
-        vm_std_cheats.prank(user);
-        want.approve(address(vault), _amount);
-        vm_std_cheats.prank(user);
-        vault.deposit(_amount);
+        actions.userDeposit(user, vault, want, _amount);
         skip(1);
+        vm_std_cheats.prank(gov);
         strategy.harvest();
-        assertEq(strategy.estimatedTotalAssets(), _amount);
 
-        // In order to pass these tests, you will need to implement prepareReturn.
-        // TODO: uncomment the following lines.
-        // vault.revokeStrategy(address(strategy));
-        // skip(1);
-        // strategy.harvest();
-        // assertEq(want.balanceOf(address(vault)), _amount);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+
+        vm_std_cheats.prank(gov);
+        vault.revokeStrategy(address(strategy));
+        skip(1);
+        vm_std_cheats.prank(gov);
+        strategy.harvest();
+        assertRelApproxEq(want.balanceOf(address(vault)), _amount, DELTA);
     }
 
     function testRevokeStrategyFromStrategy(uint256 _amount) public {
-        vm_std_cheats.assume(_amount > 0.1 ether && _amount < 10e18);
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+        tip(address(want), address(user), _amount);
 
-        vm_std_cheats.prank(user);
-        want.approve(address(vault), _amount);
-        vm_std_cheats.prank(user);
-        vault.deposit(_amount);
+        actions.userDeposit(user, vault, want, _amount);
         skip(1);
+        vm_std_cheats.prank(gov);
         strategy.harvest();
-        assertEq(strategy.estimatedTotalAssets(), _amount);
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
 
+        vm_std_cheats.prank(gov);
         strategy.setEmergencyExit();
         skip(1);
+        vm_std_cheats.prank(gov);
         strategy.harvest();
-        assertEq(want.balanceOf(address(vault)), _amount);
+        assertRelApproxEq(want.balanceOf(address(vault)), _amount, DELTA);
+    }
+
+    function testRevokeWithProfit(uint256 _amount) public {
+        vm_std_cheats.assume(_amount > minFuzzAmt && _amount < maxFuzzAmt);
+        tip(address(want), address(user), _amount);
+
+        actions.userDeposit(user, vault, want, _amount);
+        skip(1);
+        vm_std_cheats.prank(gov);
+        strategy.harvest();
+        assertRelApproxEq(strategy.estimatedTotalAssets(), _amount, DELTA);
+
+        uint256 profitAmount = (_amount * 5) / 100; // generating a 5% profit
+        actions.generateProfit(strategy, whale, profitAmount);
+
+        // Revoke strategy
+        vm_std_cheats.prank(gov);
+        vault.revokeStrategy(address(strategy));
+        skip(1);
+        vm_std_cheats.prank(gov);
+        strategy.harvest();
+        checks.checkRevokedStrategy(vault, strategy);
     }
 }

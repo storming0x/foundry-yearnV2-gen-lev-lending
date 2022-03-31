@@ -2,9 +2,7 @@
 pragma solidity 0.8.12;
 pragma experimental ABIEncoderV2;
 
-import {
-    ILendingPoolAddressesProvider
-} from "./ILendingPoolAddressesProvider.sol";
+import {ILendingPoolAddressesProvider} from "./ILendingPoolAddressesProvider.sol";
 
 interface IProtocolDataProvider {
     struct TokenData {
